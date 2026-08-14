@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Rentabilidad Multiproveedor | RUMBO</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Jura:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#152038;
+    --navy-dark:#0d1624;
+    --gold:#C49A3C;
+    --white:#ffffff;
+    --gris:#F5F5F3;
+    --ink:#2D2D2D;
+    --paper:#F5F5F3;
+    --panel:#ffffff;
+    --line:#e2e1dc;
+    --brand:#152038;
+    --brand-dark:#0d1624;
+    --accent:#C49A3C;
+    --good:#2f7a4f;
+    --good-bg:#e8f4ec;
+    --warn:#a8791a;
+    --warn-bg:#fbf1de;
+    --bad:#b3402f;
+    --bad-bg:#fbe9e5;
+    --mono: 'Jura', 'Courier New', monospace;
+    --heading: 'Bricolage Grotesque', sans-serif;
+    --body: 'Jura', 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: var(--body);
+    background:var(--paper);
+    color:var(--ink);
+  }
+  h1,h2{ font-family:var(--heading); }
+  header{
+    background:var(--navy);
+    color:var(--white);
+    padding:22px 32px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .logo-mark{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .logo-mark .compass{
+    width:6px;
+    height:26px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  .logo-mark .compass svg{ width:14px; height:26px; }
+  .logo-text{ line-height:1; }
+  .logo-text .wordmark{
+    font-family:var(--heading);
+    font-weight:800;
+    font-size:22px;
+    letter-spacing:4px;
+    color:var(--white);
+  }
+  .logo-text .sub{
+    font-family:var(--body);
+    font-weight:600;
+    font-size:9px;
+    letter-spacing:2.5px;
+    color:var(--gold);
+    margin-top:4px;
+    text-transform:uppercase;
+  }
+  header h1{
+    font-size:17px;
+    margin:0 0 0 18px;
+    padding-left:18px;
+    border-left:1px solid rgba(255,255,255,0.2);
+    font-weight:700;
+    letter-spacing:0.2px;
+    font-family:var(--heading);
+  }
+  header .header-left{
+    display:flex;
+    align-items:center;
+  }
+  header .tag{
+    font-size:11px;
+    opacity:0.7;
+    margin-top:4px;
+    margin-left:18px;
+    padding-left:18px;
+    font-family:var(--mono);
+    letter-spacing:0.5px;
+  }
+  header .brand{
+    font-size:11px;
+    font-family:var(--mono);
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    opacity:0.85;
+    border:1px solid rgba(241,239,230,0.35);
+    padding:5px 10px;
+    border-radius:4px;
+  }
+  .tabs{
+    display:flex;
+    background:var(--navy-dark);
+    padding:0 32px;
+    gap:4px;
+  }
+  .tab-btn{
+    background:none;
+    border:none;
+    color:#c9cedb;
+    padding:13px 20px;
+    font-size:13.5px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    font-family:var(--body);
+    text-transform:uppercase;
+    opacity:0.8;
+  }
+  .tab-btn.active{
+    opacity:1;
+    color:var(--white);
+    border-bottom:3px solid var(--gold);
+    background:rgba(255,255,255,0.04);
+  }
+  main{
+    max-width:1400px;
+    margin:0 auto;
+    padding:28px 32px 60px;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px;
+    margin-bottom:22px;
+  }
+  .panel h2{
+    margin:0 0 4px;
+    font-size:16px;
+    color:var(--brand-dark);
+  }
+  .panel .sub{
+    font-size:12.5px;
+    color:#6b6459;
+    margin-bottom:16px;
+  }
+  .controls-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(170px,1fr));
+    gap:14px;
+    margin-bottom:6px;
+  }
+  .field label{
+    display:block;
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    color:#7a7364;
+    margin-bottom:5px;
+  }
+  .field input, .field select{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    font-size:14px;
+    font-family:var(--mono);
+    background:#fffdf9;
+    color:var(--ink);
+  }
+  .field input:focus{
+    outline:2px solid var(--brand);
+    outline-offset:1px;
+  }
+  .upload-zone{
+    border:2px dashed var(--line);
+    border-radius:10px;
+    padding:24px;
+    text-align:center;
+    background:#fbfaf6;
+    cursor:pointer;
+    transition:border-color 0.15s;
+  }
+  .upload-zone:hover{ border-color:var(--brand); }
+  .upload-zone input[type=file]{ display:none; }
+  .upload-zone .icon{ font-size:28px; margin-bottom:6px; }
+  .upload-zone .txt{ font-size:13.5px; color:#59544a; }
+  .upload-zone .txt strong{ color:var(--brand-dark); }
+  .btn{
+    background:var(--gold);
+    color:var(--navy-dark);
+    border:none;
+    padding:10px 18px;
+    border-radius:6px;
+    font-size:13.5px;
+    font-weight:700;
+    letter-spacing:0.2px;
+    cursor:pointer;
+    font-family:var(--body);
+  }
+  .btn:hover{ background:#b08a35; }
+  .btn.secondary{
+    background:none;
+    border:1px solid var(--navy);
+    color:var(--navy);
+  }
+  .btn.secondary:hover{ background:#eef0f4; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .actions-row{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+    margin-top:14px;
+    flex-wrap:wrap;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  thead th{
+    background:#eaecf1;
+    color:var(--navy);
+    text-align:right;
+    padding:9px 8px;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  thead th:first-child, thead th:nth-child(2){ text-align:left; }
+  tbody td{
+    padding:7px 8px;
+    text-align:right;
+    border-bottom:1px solid #ece8dc;
+    font-family:var(--mono);
+    white-space:nowrap;
+  }
+  tbody td:first-child, tbody td:nth-child(2){
+    text-align:left;
+    font-family:inherit;
+  }
+  tbody tr:hover{ background:#fbfaf5; }
+  tbody input{
+    width:64px;
+    padding:5px 6px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    font-family:var(--mono);
+    font-size:12.5px;
+    text-align:right;
+  }
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+  .badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:20px;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  .badge.good{ background:var(--good-bg); color:var(--good); }
+  .badge.warn{ background:var(--warn-bg); color:var(--warn); }
+  .badge.bad{ background:var(--bad-bg); color:var(--bad); }
+  .empty-state{
+    text-align:center;
+    padding:40px 20px;
+    color:#9a927e;
+    font-size:13.5px;
+  }
+  .summary-cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px,1fr));
+    gap:14px;
+    margin-bottom:20px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+  }
+  .card .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.4px;
+    color:#8a8371;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .card .value{
+    font-size:22px;
+    font-weight:700;
+    font-family:var(--mono);
+    color:var(--brand-dark);
+  }
+  .breakeven-banner{
+    padding:18px 22px;
+    border-radius:10px;
+    margin-bottom:20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .breakeven-banner.good{ background:var(--good-bg); border:1px solid #bfe0c9; }
+  .breakeven-banner.bad{ background:var(--bad-bg); border:1px solid #f0c4bb; }
+  .breakeven-banner .be-title{
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.3px;
+  }
+  .breakeven-banner.good .be-title{ color:var(--good); }
+  .breakeven-banner.bad .be-title{ color:var(--bad); }
+  .breakeven-banner .be-detail{
+    font-size:13px;
+    color:#4b473d;
+    margin-top:3px;
+  }
+  .breakeven-banner .be-num{
+    font-size:26px;
+    font-weight:700;
+    font-family:var(--mono);
+  }
+  .breakeven-banner.good .be-num{ color:var(--good); }
+  .breakeven-banner.bad .be-num{ color:var(--bad); }
+  .contrib-bar-bg{
+    width:100px;
+    height:7px;
+    background:#e7e3d5;
+    border-radius:4px;
+    overflow:hidden;
+    display:inline-block;
+    vertical-align:middle;
+  }
+  .contrib-bar{
+    height:100%;
+    background:var(--brand);
+    border-radius:4px;
+  }
+  footer{
+    text-align:center;
+    font-size:11.5px;
+    color:#a39c8a;
+    padding:20px;
+    font-family:var(--mono);
+  }
+  .note{
+    font-size:12px;
+    color:#8a8371;
+    margin-top:10px;
+    line-height:1.5;
+  }
+  .supplier-tabs{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .supplier-chip{
+    background:#eef0f4;
+    border:1px solid var(--line);
+    color:var(--navy);
+    padding:7px 14px;
+    border-radius:20px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:var(--body);
+  }
+  .supplier-chip.active{
+    background:var(--navy);
+    color:var(--white);
+    border-color:var(--navy);
+  }
+  .supplier-chip .count{
+    opacity:0.7;
+    font-weight:400;
+    margin-left:3px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">
+      <div class="compass">
+        <svg viewBox="0 0 14 26" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7 0 L10 12 L7 10 L4 12 Z" fill="#C49A3C"/>
+          <line x1="7" y1="13" x2="7" y2="26" stroke="#C49A3C" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <div class="wordmark">RUMBO</div>
+        <div class="sub">Tu GPS Empresarial</div>
+      </div>
+    </div>
+    <div>
+      <h1>Simulador de Rentabilidad Multiproveedor</h1>
+      <div class="tag">costo → markup → precio → IIBB → rentabilidad</div>
+    </div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="precios">Análisis de Precios</button>
+  <button class="tab-btn" data-tab="costos">Costos Fijos y Punto de Equilibrio</button>
+</div>
+
+<main>
+
+  <!-- TAB 1: PRECIOS -->
+  <section id="tab-precios">
+
+    <div class="panel">
+      <h2>1. Cargar lista de precios</h2>
+      <div class="sub">Aceptamos Excel (.xlsx) o CSV. Si el archivo tiene varias hojas, cada hoja se toma como un proveedor distinto. Si el archivo trae una columna de cantidad/unidades, se carga automáticamente en "Unid./mes". Podés subir varios archivos: se van sumando a la lista (no se pisan entre sí).</div>
+      <label class="upload-zone" id="uploadZone">
+        <div class="icon">📄</div>
+        <div class="txt"><strong>Hacé clic para elegir un archivo</strong><br>o arrastralo acá — .xlsx, .xls, .csv</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+      </label>
+      <div class="note" id="uploadStatus"></div>
+      <div class="actions-row" style="justify-content:flex-start;">
+        <button class="btn secondary" id="clearAllBtn" disabled style="border-color:var(--bad);color:var(--bad);opacity:0.4;cursor:not-allowed;">🗑 Borrar todo y empezar de cero</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>2. Parámetros globales</h2>
+      <div class="sub">Se aplican a todos los productos. Podés ajustar cada producto individualmente en la tabla.</div>
+      <div class="controls-grid">
+        <div class="field">
+          <label>Markup global (%)</label>
+          <input type="number" id="globalMarkup" value="35" step="0.1">
+        </div>
+        <div class="field">
+          <label>Descuento del proveedor (%)</label>
+          <input type="number" id="globalDescuento" value="0" step="0.1">
+        </div>
+        <div class="field">
+          <label>Flete (%)</label>
+          <input type="number" id="globalFlete" value="5" step="0.1">
+        </div>
+        <div class="field">
+          <label>Tasa IIBB (%)</label>
+          <input type="number" id="iibbRate" value="3.31" step="0.01">
+        </div>
+        <div class="field">
+          <label>IVA (%)</label>
+          <input type="number" id="ivaRate" value="21" step="0.1">
+        </div>
+      </div>
+      <div class="note">Flete: se calcula sobre el costo ya con el descuento del proveedor aplicado, y se suma al costo antes de aplicar el markup.</div>
+      <div class="actions-row">
+        <button class="btn secondary" id="applyGlobalBtn">Aplicar a todos los productos</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>3. Detalle por producto</h2>
+      <div class="sub">Editá markup, descuento o unidades estimadas por mes directamente en la tabla.</div>
+      <div id="supplierTabs" style="display:none; margin-bottom:14px;"></div>
+      <div id="summaryCards" class="summary-cards" style="display:none;"></div>
+      <div class="table-wrap">
+        <table id="pricesTable">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Proveedor</th>
+              <th>Costo prov.</th>
+              <th>Desc. %</th>
+              <th>Costo ajust.</th>
+              <th>Flete %</th>
+              <th>Costo total</th>
+              <th>Markup %</th>
+              <th>Precio s/IVA</th>
+              <th>Precio c/IVA</th>
+              <th>IIBB</th>
+              <th>Rent. bruta</th>
+              <th>Rent. neta</th>
+              <th>Margen</th>
+              <th>Unid./mes</th>
+            </tr>
+          </thead>
+          <tbody id="pricesBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="emptyState">Todavía no cargaste ninguna lista de precios. Subí un archivo arriba para empezar.</div>
+      <div class="actions-row" id="exportRow" style="display:none;">
+        <button class="btn secondary" id="addRowBtn">+ Agregar producto manual</button>
+        <button class="btn" id="exportBtn">Exportar a Excel</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- TAB 2: COSTOS FIJOS -->
+  <section id="tab-costos" style="display:none;">
+
+    <div class="panel">
+      <h2>Costos fijos mensuales</h2>
+      <div class="sub">Cargá el total de costos fijos del mes (alquiler, sueldos, logística, etc. — ya calculado por vos).</div>
+      <div class="controls-grid" style="max-width:260px;">
+        <div class="field">
+          <label>Costos fijos ($/mes)</label>
+          <input type="number" id="fixedCosts" value="0" step="1000">
+        </div>
+      </div>
+    </div>
+
+    <div id="breakevenBanner"></div>
+
+    <div class="panel">
+      <h2>Contribución por producto al punto de equilibrio</h2>
+      <div class="sub">Contribución mensual = rentabilidad neta unitaria × unidades estimadas por mes. Ordenado de mayor a menor aporte.</div>
+      <div class="table-wrap">
+        <table id="contribTable">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Rent. neta unit.</th>
+              <th>Unid./mes</th>
+              <th>Contribución</th>
+              <th>% de costos fijos</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="contribBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="contribEmpty">Cargá productos con unidades estimadas en la pestaña "Análisis de Precios" para ver este desglose.</div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>RUMBO — Tu GPS Empresarial · Simulador de rentabilidad multiproveedor</footer>
+
+<script>
+let products = [];
+let nextId = 1;
+let currentFilter = 'todos';
+
+const $ = (id) => document.getElementById(id);
+
+// ---------- TABS (Precios / Costos) ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    $('tab-precios').style.display = tab==='precios' ? 'block' : 'none';
+    $('tab-costos').style.display = tab==='costos' ? 'block' : 'none';
+    if(tab==='costos') renderCostos();
+  });
+});
+
+// ---------- FILE UPLOAD ----------
+const uploadZone = $('uploadZone');
+const fileInput = $('fileInput');
+
+uploadZone.addEventListener('dragover', e=>{ e.preventDefault(); uploadZone.style.borderColor='var(--navy)'; });
+uploadZone.addEventListener('dragleave', e=>{ uploadZone.style.borderColor='var(--line)'; });
+uploadZone.addEventListener('drop', e=>{
+  e.preventDefault();
+  uploadZone.style.borderColor='var(--line)';
+  if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if(e.target.files.length) handleFile(e.target.files[0]);
+  fileInput.value = ''; // allow re-uploading the same file name later
+});
+
+$('clearAllBtn').addEventListener('click', ()=>{
+  if(products.length===0) return;
+  const ok = confirm('¿Seguro que querés borrar todos los productos cargados y empezar de cero? Esta acción no se puede deshacer.');
+  if(!ok) return;
+  products = [];
+  currentFilter = 'todos';
+  $('uploadStatus').textContent = 'Lista vaciada. Subí un archivo para empezar de nuevo.';
+  $('uploadStatus').style.color = '#8a8371';
+  renderTable();
+});
+
+function handleFile(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const baseName = file.name.replace(/\.[^.]+$/, '');
+      let totalAdded = 0;
+      const sheetNames = wb.SheetNames;
+
+      sheetNames.forEach(sheetName=>{
+        const sheet = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, {header:1, defval:''});
+        // if the workbook only has one sheet, label the supplier with the file name;
+        // if it has several, each sheet name is treated as its own supplier
+        const proveedor = sheetNames.length > 1 ? sheetName.trim() : baseName;
+        totalAdded += parseRows(rows, proveedor);
+      });
+
+      if(totalAdded===0){
+        $('uploadStatus').textContent = 'No se encontraron filas válidas (nombre + costo numérico) en "'+file.name+'".';
+        $('uploadStatus').style.color = 'var(--bad)';
+        return;
+      }
+
+      const supplierCount = new Set(products.map(p=>p.proveedor)).size;
+      $('uploadStatus').textContent = 'Se agregaron '+totalAdded+' productos desde "'+file.name+'". Total acumulado: '+products.length+' productos de '+supplierCount+' proveedor(es).';
+      $('uploadStatus').style.color = 'var(--good)';
+      renderTable();
+    }catch(err){
+      $('uploadStatus').textContent = 'No se pudo leer el archivo: ' + err.message;
+      $('uploadStatus').style.color = 'var(--bad)';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseRows(rows, proveedor){
+  if(!rows.length) return 0;
+  // find header row: look for a row containing something like "producto"/"nombre" and "costo"/"precio"
+  let headerIdx = 0;
+  let nameCol = -1, costCol = -1, qtyCol = -1;
+  for(let i=0;i<Math.min(rows.length,5);i++){
+    const row = rows[i].map(c=>String(c).toLowerCase().trim());
+    const nIdx = row.findIndex(c=>/producto|nombre|descrip|articulo|artículo/.test(c));
+    const cIdx = row.findIndex(c=>/costo|precio/.test(c));
+    const qIdx = row.findIndex(c=>/cantidad|cant\.|unidades|unid\.|^unid$|qty|stock/.test(c));
+    if(nIdx>-1 && cIdx>-1){
+      headerIdx = i; nameCol = nIdx; costCol = cIdx; qtyCol = qIdx;
+      break;
+    }
+  }
+  // fallback: assume first column = name, second = cost, no header
+  let dataRows;
+  if(nameCol===-1){
+    nameCol = 0; costCol = 1;
+    dataRows = rows;
+  } else {
+    dataRows = rows.slice(headerIdx+1);
+  }
+
+  const newProducts = [];
+  dataRows.forEach(row=>{
+    const nombre = String(row[nameCol]||'').trim();
+    let costoRaw = row[costCol];
+    let costo = parseFloat(String(costoRaw).replace(/[^0-9.,-]/g,'').replace(',', '.'));
+    if(!nombre || isNaN(costo) || costo<=0) return;
+
+    let unidades = 0;
+    if(qtyCol>-1){
+      const qtyRaw = row[qtyCol];
+      const qtyParsed = parseFloat(String(qtyRaw).replace(/[^0-9.,-]/g,'').replace(',', '.'));
+      if(!isNaN(qtyParsed) && qtyParsed>0) unidades = qtyParsed;
+    }
+
+    newProducts.push({
+      id: nextId++,
+      nombre,
+      proveedor,
+      costo,
+      markup: null,   // null = usar global
+      descuento: null,
+      flete: null,
+      unidades
+    });
+  });
+
+  products = products.concat(newProducts);
+  return newProducts.length;
+}
+
+// ---------- CALC ----------
+function calcProduct(p){
+  const globalMarkup = parseFloat($('globalMarkup').value)||0;
+  const globalDesc = parseFloat($('globalDescuento').value)||0;
+  const globalFlete = parseFloat($('globalFlete').value)||0;
+  const iibbRate = parseFloat($('iibbRate').value)||0;
+  const ivaRate = parseFloat($('ivaRate').value)||0;
+
+  const markup = p.markup===null ? globalMarkup : p.markup;
+  const descuento = p.descuento===null ? globalDesc : p.descuento;
+  const flete = p.flete===null ? globalFlete : p.flete;
+
+  const costoAjustado = p.costo * (1 - descuento/100);
+  const fleteMonto = costoAjustado * (flete/100);
+  const costoTotal = costoAjustado + fleteMonto;
+  const precioSinIVA = costoTotal * (1 + markup/100);
+  const precioConIVA = precioSinIVA * (1 + ivaRate/100);
+  const iibb = precioSinIVA * (iibbRate/100);
+  const rentBruta = precioSinIVA - costoTotal;
+  const rentNeta = rentBruta - iibb;
+  const margenPct = precioSinIVA>0 ? (rentNeta/precioSinIVA*100) : 0;
+
+  return {costoAjustado, fleteMonto, costoTotal, precioSinIVA, precioConIVA, iibb, rentBruta, rentNeta, margenPct, markup, descuento, flete};
+}
+
+function marginBadge(margenPct){
+  if(margenPct > 15) return '<span class="badge good">VIABLE</span>';
+  if(margenPct >= 5) return '<span class="badge warn">AJUSTADO</span>';
+  return '<span class="badge bad">NO VIABLE</span>';
+}
+
+function fmt(n){
+  return n.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// ---------- RENDER TABLE ----------
+function getSuppliers(){
+  const seen = [];
+  products.forEach(p=>{ if(p.proveedor && !seen.includes(p.proveedor)) seen.push(p.proveedor); });
+  return seen;
+}
+
+function renderSupplierTabs(){
+  const suppliers = getSuppliers();
+  const wrap = $('supplierTabs');
+  if(suppliers.length <= 1){
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+    currentFilter = 'todos';
+    return;
+  }
+  wrap.style.display = 'block';
+  const totalCount = products.length;
+  let html = '<div class="supplier-tabs">';
+  html += `<button class="supplier-chip ${currentFilter==='todos'?'active':''}" data-filter="todos">Todos <span class="count">(${totalCount})</span></button>`;
+  suppliers.forEach(s=>{
+    const count = products.filter(p=>p.proveedor===s).length;
+    html += `<button class="supplier-chip ${currentFilter===s?'active':''}" data-filter="${s}">${s} <span class="count">(${count})</span></button>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.supplier-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      currentFilter = chip.dataset.filter;
+      renderTable();
+    });
+  });
+}
+
+function renderTable(){
+  renderSupplierTabs();
+
+  const tbody = $('pricesBody');
+  tbody.innerHTML = '';
+  const hasProducts = products.length>0;
+  $('emptyState').style.display = hasProducts ? 'none' : 'block';
+  $('exportRow').style.display = hasProducts ? 'flex' : 'none';
+  $('summaryCards').style.display = hasProducts ? 'grid' : 'none';
+  $('clearAllBtn').disabled = !hasProducts;
+  $('clearAllBtn').style.opacity = hasProducts ? '1' : '0.4';
+  $('clearAllBtn').style.cursor = hasProducts ? 'pointer' : 'not-allowed';
+
+  const visibleProducts = currentFilter==='todos' ? products : products.filter(p=>p.proveedor===currentFilter);
+
+  let countViable=0, countAjustado=0, countNoViable=0;
+
+  visibleProducts.forEach(p=>{
+    const c = calcProduct(p);
+    if(c.margenPct>15) countViable++;
+    else if(c.margenPct>=5) countAjustado++;
+    else countNoViable++;
+
+    const tr = document.createElement('tr');
+    tr.dataset.id = p.id;
+    tr.innerHTML = `
+      <td>${p.nombre}</td>
+      <td><span style="font-size:11.5px;color:#7a7364;">${p.proveedor||'—'}</span></td>
+      <td>$ ${fmt(p.costo)}</td>
+      <td><input type="number" step="0.1" value="${p.descuento===null?'':p.descuento}" placeholder="${parseFloat($('globalDescuento').value)||0}" data-id="${p.id}" data-field="descuento"></td>
+      <td>$ ${fmt(c.costoAjustado)}</td>
+      <td><input type="number" step="0.1" value="${p.flete===null?'':p.flete}" placeholder="${parseFloat($('globalFlete').value)||0}" data-id="${p.id}" data-field="flete"></td>
+      <td>$ ${fmt(c.costoTotal)}</td>
+      <td><input type="number" step="0.1" value="${p.markup===null?'':p.markup}" placeholder="${parseFloat($('globalMarkup').value)||0}" data-id="${p.id}" data-field="markup"></td>
+      <td>$ ${fmt(c.precioSinIVA)}</td>
+      <td>$ ${fmt(c.precioConIVA)}</td>
+      <td>$ ${fmt(c.iibb)}</td>
+      <td>$ ${fmt(c.rentBruta)}</td>
+      <td>$ ${fmt(c.rentNeta)}</td>
+      <td>${marginBadge(c.margenPct)}<br><span style="font-size:10.5px;color:#8a8371;">${c.margenPct.toFixed(1)}%</span></td>
+      <td><input type="number" step="1" value="${p.unidades}" data-id="${p.id}" data-field="unidades"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', e=>{
+      const id = parseInt(e.target.dataset.id);
+      const field = e.target.dataset.field;
+      const prod = products.find(x=>x.id===id);
+      if(!prod) return;
+      const val = e.target.value;
+      prod[field] = val==='' ? (field==='unidades'?0:null) : parseFloat(val);
+      renderTable();
+    });
+  });
+
+  renderSummaryCards(countViable, countAjustado, countNoViable, visibleProducts.length);
+}
+
+function renderSummaryCards(v,a,n,total){
+  $('summaryCards').innerHTML = `
+    <div class="card"><div class="label">Productos ${currentFilter==='todos'?'cargados':'('+currentFilter+')'}</div><div class="value">${total}</div></div>
+    <div class="card"><div class="label" style="color:var(--good)">Viables (&gt;15%)</div><div class="value" style="color:var(--good)">${v}</div></div>
+    <div class="card"><div class="label" style="color:var(--warn)">Ajustados (5–15%)</div><div class="value" style="color:var(--warn)">${a}</div></div>
+    <div class="card"><div class="label" style="color:var(--bad)">No viables (&lt;5%)</div><div class="value" style="color:var(--bad)">${n}</div></div>
+  `;
+}
+
+// global param changes re-render
+['globalMarkup','globalDescuento','globalFlete','iibbRate','ivaRate'].forEach(id=>{
+  $(id).addEventListener('input', ()=>{ if(products.length) renderTable(); });
+});
+
+$('applyGlobalBtn').addEventListener('click', ()=>{
+  products.forEach(p=>{ p.markup=null; p.descuento=null; p.flete=null; });
+  renderTable();
+});
+
+$('addRowBtn').addEventListener('click', ()=>{
+  const proveedor = currentFilter==='todos' ? 'Manual' : currentFilter;
+  products.push({id: nextId++, nombre:'Producto nuevo', proveedor, costo:0, markup:null, descuento:null, flete:null, unidades:0});
+  renderTable();
+  // make the new row's name editable via prompt for simplicity
+});
+
+// allow editing product name and cost by clicking on cell (simple approach: double-click)
+$('pricesBody').addEventListener('dblclick', e=>{
+  const td = e.target.closest('td');
+  if(!td) return;
+  const tr = td.closest('tr');
+  const id = parseInt(tr.dataset.id);
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  const cellIdx = Array.from(tr.children).indexOf(td);
+  if(cellIdx===0){
+    const nuevo = prompt('Nombre del producto:', p.nombre);
+    if(nuevo!==null && nuevo.trim()!==''){ p.nombre = nuevo.trim(); renderTable(); }
+  } else if(cellIdx===1){
+    const nuevo = prompt('Proveedor:', p.proveedor||'');
+    if(nuevo!==null && nuevo.trim()!==''){ p.proveedor = nuevo.trim(); renderTable(); }
+  } else if(cellIdx===2){
+    const nuevo = prompt('Costo del proveedor:', p.costo);
+    const val = parseFloat(nuevo);
+    if(!isNaN(val) && val>0){ p.costo = val; renderTable(); }
+  }
+});
+
+// ---------- EXPORT ----------
+$('exportBtn').addEventListener('click', ()=>{
+  const globalMarkup = parseFloat($('globalMarkup').value)||0;
+  const globalDesc = parseFloat($('globalDescuento').value)||0;
+  const globalFlete = parseFloat($('globalFlete').value)||0;
+  const iibbRate = parseFloat($('iibbRate').value)||0;
+  const ivaRate = parseFloat($('ivaRate').value)||0;
+  const fixedCosts = parseFloat($('fixedCosts').value)||0;
+
+  const buildRow = (p)=>{
+    const c = calcProduct(p);
+    return {
+      'Producto': p.nombre,
+      'Proveedor': p.proveedor||'',
+      'Costo Proveedor': p.costo,
+      'Descuento %': c.descuento,
+      'Costo Ajustado': Number(c.costoAjustado.toFixed(2)),
+      'Flete %': c.flete,
+      'Flete $': Number(c.fleteMonto.toFixed(2)),
+      'Costo Total': Number(c.costoTotal.toFixed(2)),
+      'Markup %': c.markup,
+      'Precio sin IVA': Number(c.precioSinIVA.toFixed(2)),
+      'Precio con IVA': Number(c.precioConIVA.toFixed(2)),
+      'IIBB': Number(c.iibb.toFixed(2)),
+      'Rentabilidad Bruta': Number(c.rentBruta.toFixed(2)),
+      'Rentabilidad Neta': Number(c.rentNeta.toFixed(2)),
+      'Margen %': Number(c.margenPct.toFixed(2)),
+      'Clasificación': c.margenPct>15?'VIABLE':(c.margenPct>=5?'AJUSTADO':'NO VIABLE'),
+      'Unidades/mes': p.unidades,
+      'Contribución mensual': Number((c.rentNeta * (p.unidades||0)).toFixed(2))
+    };
+  };
+
+  const dataRows = products.map(buildRow);
+  const wb = XLSX.utils.book_new();
+
+  // Hoja combinada con todos los proveedores
+  const wsAll = XLSX.utils.json_to_sheet(dataRows);
+  XLSX.utils.book_append_sheet(wb, wsAll, 'Todos');
+
+  // Una hoja por proveedor, si hay más de uno
+  const suppliers = getSuppliers();
+  if(suppliers.length > 1){
+    const usedNames = new Set(['Todos','Parametros']);
+    suppliers.forEach(s=>{
+      const rowsForSupplier = products.filter(p=>p.proveedor===s).map(buildRow);
+      let sheetName = s.replace(/[\\\/\?\*\[\]:]/g, '').substring(0,31) || 'Proveedor';
+      let unique = sheetName, i=2;
+      while(usedNames.has(unique)){ unique = (sheetName.substring(0,28)+'_'+i); i++; }
+      usedNames.add(unique);
+      const ws = XLSX.utils.json_to_sheet(rowsForSupplier);
+      XLSX.utils.book_append_sheet(wb, ws, unique);
+    });
+  }
+
+  const totalContrib = dataRows.reduce((s,r)=>s+r['Contribución mensual'],0);
+  const paramsRows = [
+    {Parametro:'Markup global (%)', Valor: globalMarkup},
+    {Parametro:'Descuento global (%)', Valor: globalDesc},
+    {Parametro:'Flete global (%)', Valor: globalFlete},
+    {Parametro:'Tasa IIBB (%)', Valor: iibbRate},
+    {Parametro:'IVA (%)', Valor: ivaRate},
+    {Parametro:'Costos fijos mensuales', Valor: fixedCosts},
+    {Parametro:'Contribución total estimada', Valor: Number(totalContrib.toFixed(2))},
+    {Parametro:'Resultado vs. costos fijos', Valor: Number((totalContrib-fixedCosts).toFixed(2))},
+    {Parametro:'Fecha de exportación', Valor: new Date().toLocaleString('es-AR')}
+  ];
+  const ws2 = XLSX.utils.json_to_sheet(paramsRows);
+  XLSX.utils.book_append_sheet(wb, ws2, 'Parametros');
+
+  XLSX.writeFile(wb, 'simulador_rentabilidad_'+new Date().toISOString().slice(0,10)+'.xlsx');
+});
+
+// ---------- TAB 2: COSTOS FIJOS ----------
+$('fixedCosts').addEventListener('input', renderCostos);
+
+function renderCostos(){
+  const fixedCosts = parseFloat($('fixedCosts').value)||0;
+  const rows = products.map(p=>{
+    const c = calcProduct(p);
+    const contrib = c.rentNeta * (p.unidades||0);
+    return {nombre:p.nombre, rentNeta:c.rentNeta, unidades:p.unidades||0, contrib};
+  }).sort((a,b)=>b.contrib-a.contrib);
+
+  const totalContrib = rows.reduce((s,r)=>s+r.contrib,0);
+  const diff = totalContrib - fixedCosts;
+  const covers = diff >= 0;
+
+  const banner = $('breakevenBanner');
+  if(products.length===0){
+    banner.innerHTML = '';
+  } else {
+    banner.innerHTML = `
+      <div class="breakeven-banner ${covers?'good':'bad'}">
+        <div>
+          <div class="be-title">${covers ? '✓ Cubre el punto de equilibrio' : '✗ No cubre el punto de equilibrio'}</div>
+          <div class="be-detail">Contribución total estimada: $ ${fmt(totalContrib)} · Costos fijos: $ ${fmt(fixedCosts)}</div>
+        </div>
+        <div class="be-num">${covers?'+':''}$ ${fmt(diff)}</div>
+      </div>
+    `;
+  }
+
+  const tbody = $('contribBody');
+  tbody.innerHTML = '';
+  const hasUnits = rows.some(r=>r.unidades>0);
+  $('contribEmpty').style.display = (products.length===0 || !hasUnits) ? 'block' : 'none';
+
+  rows.forEach(r=>{
+    if(r.unidades<=0 && !hasUnits) return;
+    const pctFixed = fixedCosts>0 ? (r.contrib/fixedCosts*100) : 0;
+    const barPct = Math.max(0, Math.min(100, pctFixed));
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.nombre}</td>
+      <td>$ ${fmt(r.rentNeta)}</td>
+      <td>${r.unidades}</td>
+      <td>$ ${fmt(r.contrib)}</td>
+      <td>${pctFixed.toFixed(1)}%</td>
+      <td><span class="contrib-bar-bg"><span class="contrib-bar" style="width:${barPct}%"></span></span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+</script>
+
+</body>
+</html>
